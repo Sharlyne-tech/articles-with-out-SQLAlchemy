@@ -15,9 +15,29 @@ class Magazine:
         conn.close()
 
     @classmethod
-    def find_by_id(cls, id):
+    def articles(cls, id):
+      conn = get_connection()
+      cursor = conn.cursor()
+      cursor.execute(
+        "SELECT * FROM articles WHERE magazine_id = ?", (id,)
+    )
+      return cursor.fetchall()
+
+    def contributors(self):
         conn = get_connection()
         cursor = conn.cursor()
+        cursor.execute("""
+            SELECT DISTINCT au.* FROM authors au
+            JOIN articles a ON a.author_id = au.id
+            WHERE a.magazine_id = ?
+        """, (self.id,))
+        return cursor.fetchall()
+
+    def article_titles(self):
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT title FROM articles WHERE magazine_id = ?", (self.id,))
+        return [row["title"] for row in cursor.fetchall()]
         cursor.execute("SELECT * FROM magazines WHERE id = ?", (id,))
         row = cursor.fetchone()
         conn.close()
